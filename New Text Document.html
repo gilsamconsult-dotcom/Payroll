@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kenya Payroll System</title>
+<style>
+  :root {
+    --navy:    #0B1F3A;
+    --blue:    #1A56DB;
+    --blue-lt: #EBF5FF;
+    --teal:    #0694A2;
+    --teal-lt: #E6FFFA;
+    --green:   #057A55;
+    --green-lt:#F3FAF7;
+    --amber:   #C27803;
+    --amber-lt:#FFFBEB;
+    --red:     #C81E1E;
+    --red-lt:  #FDF2F2;
+    --gray-50: #F9FAFB;
+    --gray-100:#F3F4F6;
+    --gray-200:#E5E7EB;
+    --gray-300:#D1D5DB;
+    --gray-400:#9CA3AF;
+    --gray-500:#6B7280;
+    --gray-700:#374151;
+    --gray-900:#111827;
+    --white:   #FFFFFF;
+    --sidebar-w: 240px;
+    --radius:  8px;
+    --shadow:  0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-lg:0 4px 16px rgba(0,0,0,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-50);color:var(--gray-900);font-size:14px;line-height:1.5}
+  button{cursor:pointer;font-family:inherit}
+  input,select,textarea{font-family:inherit}
+
+  /* ── Layout ── */
+  #app{display:flex;min-height:100vh}
+  .sidebar{width:var(--sidebar-w);background:var(--navy);color:#fff;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100}
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+  .topbar{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+  .content{padding:24px;flex:1}
+
+  /* ── Sidebar ── */
+  .sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .sidebar-logo .logo-mark{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:#fff}
+  .sidebar-logo .logo-sub{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+  .sidebar-company{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .sidebar-company .company-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sidebar-company .company-period{font-size:11px;color:rgba(255,255,255,.5)}
+  .sidebar-nav{flex:1;padding:8px 0}
+  .nav-section{padding:16px 16px 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+  .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+  .nav-item.active{background:rgba(26,86,219,.25);color:#fff;border-left-color:var(--blue);font-weight:600}
+  .nav-item .icon{width:18px;text-align:center;flex-shrink:0;opacity:.8}
+  .sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,.1)}
+  .sidebar-footer .user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.9)}
+  .sidebar-footer .user-role{font-size:11px;color:rgba(255,255,255,.4)}
+
+  /* ── Cards ── */
+  .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow)}
+  .card-header{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card-title{font-size:15px;font-weight:700;color:var(--gray-900)}
+  .card-body{padding:20px}
+  .card-body.p-0{padding:0}
+
+  /* ── KPI Stats ── */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+  .stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);padding:18px 20px;display:flex;align-items:flex-start;gap:14px}
+  .stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .stat-icon.blue{background:var(--blue-lt)}
+  .stat-icon.green{background:var(--green-lt)}
+  .stat-icon.amber{background:var(--amber-lt)}
+  .stat-icon.red{background:var(--red-lt)}
+  .stat-icon.teal{background:var(--teal-lt)}
+  .stat-label{font-size:12px;color:var(--gray-500);margin-bottom:4px}
+  .stat-value{font-size:22px;font-weight:800;color:var(--gray-900)}
+  .stat-sub{font-size:11px;color:var(--gray-400);margin-top:2px}
+
+  /* ── Tables ── */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;background:var(--gray-50);border-bottom:1px solid var(--gray-200)}
+  thead th:last-child{text-align:right}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--gray-100);font-size:13px}
+  tbody td:last-child{text-align:right}
+  tbody tr:hover{background:var(--gray-50)}
+  tbody tr:last-child td{border-bottom:none}
+  .tfoot-row td{padding:10px 14px;font-weight:700;background:var(--gray-50);font-size:13px;border-top:2px solid var(--gray-200)}
+
+  /* ── Badges ── */
+  .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600}
+  .badge.green{background:var(--green-lt);color:var(--green)}
+  .badge.amber{background:var(--amber-lt);color:var(--amber)}
+  .badge.red{background:var(--red-lt);color:var(--red)}
+  .badge.blue{background:var(--blue-lt);color:var(--blue)}
+  .badge.gray{background:var(--gray-100);color:var(--gray-500)}
+
+  /* ── Buttons ── */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;border:none;transition:all .15s}
+  .btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1447C0}
+  .btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#045F42}
+  .btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#A01818}
+  .btn-outline{background:#fff;color:var(--gray-700);border:1px solid var(--gray-300)}.btn-outline:hover{background:var(--gray-50)}
+  .btn-teal{background:var(--teal);color:#fff}.btn-teal:hover{background:#05707A}
+  .btn-amber{background:var(--amber);color:#fff}.btn-amber:hover{background:#9A6002}
+  .btn-sm{padding:5px 12px;font-size:12px}
+  .btn-xs{padding:3px 8px;font-size:11px}
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* ── Forms ── */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .form-group{display:flex;flex-direction:column;gap:5px}
+  .form-group label{font-size:12px;font-weight:600;color:var(--gray-700)}
+  .form-control{padding:8px 12px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px;color:var(--gray-900);background:var(--white);outline:none;transition:border-color .15s}
+  .form-control:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+  .form-control:disabled{background:var(--gray-100);color:var(--gray-500)}
+  select.form-control{cursor:pointer}
+
+  /* ── Tabs ── */
+  .tabs{display:flex;gap:0;border-bottom:2px solid var(--gray-200);margin-bottom:20px}
+  .tab{padding:10px 18px;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+  .tab:hover{color:var(--gray-900)}
+  .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+  /* ── Modals ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal{background:var(--white);border-radius:12px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+  .modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between}
+  .modal-title{font-size:17px;font-weight:700}
+  .modal-body{padding:24px}
+  .modal-footer{padding:16px 24px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:10px}
+  .modal-close{background:none;border:none;font-size:20px;color:var(--gray-400);cursor:pointer;padding:0 4px}
+  .modal-close:hover{color:var(--gray-700)}
+
+  /* ── Alert ── */
+  .alert{padding:12px 16px;border-radius:6px;font-size:13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:16px}
+  .alert.info{background:var(--blue-lt);color:var(--blue)}
+  .alert.success{background:var(--green-lt);color:var(--green)}
+  .alert.warning{background:var(--amber-lt);color:var(--amber)}
+  .alert.danger{background:var(--red-lt);color:var(--red)}
+
+  /* ── Page header ── */
+  .page-header{margin-bottom:20px}
+  .page-title{font-size:20px;font-weight:800;color:var(--gray-900)}
+  .page-sub{font-size:13px;color:var(--gray-500);margin-top:3px}
+  .page-actions{display:flex;gap:8px;align-items:center}
+  .page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+  /* ── Payslip ── */
+  .payslip{border:1px solid var(--gray-200);border-radius:var(--radius);padding:24px;background:#fff;max-width:680px}
+  .payslip-header{border-bottom:2px solid var(--navy);padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start}
+  .payslip-company{font-size:18px;font-weight:800;color:var(--navy)}
+  .payslip-period{font-size:12px;color:var(--gray-500)}
+  .payslip-employee{background:var(--gray-50);border-radius:6px;padding:12px 16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .payslip-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-100)}
+  .payslip-row:last-child{border-bottom:none}
+  .payslip-section{font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--gray-200)}
+  .payslip-net{background:var(--navy);color:#fff;border-radius:6px;padding:14px 16px;margin-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:800}
+
+  /* ── P10 ── */
+  .p10-preview{overflow-x:auto;font-size:11px}
+  .p10-table{border-collapse:collapse;min-width:800px}
+  .p10-table th,.p10-table td{border:1px solid #ccc;padding:4px 6px;white-space:nowrap}
+  .p10-table th{background:#1A56DB;color:#fff;font-weight:700;font-size:10px}
+  .p10-table tr:nth-child(even) td{background:#F3F4F6}
+
+  /* ── Charts ── */
+  .chart-bar-container{display:flex;align-items:flex-end;gap:8px;height:180px;padding:0 8px}
+  .chart-bar-group{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+  .chart-bars{display:flex;align-items:flex-end;gap:3px;height:150px}
+  .chart-bar{flex:1;border-radius:4px 4px 0 0;min-width:12px;transition:opacity .2s;cursor:pointer}
+  .chart-bar:hover{opacity:.8}
+  .chart-label{font-size:10px;color:var(--gray-400);text-align:center}
+  .chart-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray-600)}
+  .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+  /* ── Tags input ── */
+  .tags-container{display:flex;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid var(--gray-300);border-radius:6px;min-height:40px;cursor:text}
+  .tag{background:var(--blue-lt);color:var(--blue);border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px}
+  .tag-remove{cursor:pointer;opacity:.6}.tag-remove:hover{opacity:1}
+
+  /* ── Responsive ── */
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%)}
+    .main{margin-left:0}
+    .form-grid,.form-grid-3{grid-template-columns:1fr}
+    .stats-grid{grid-template-columns:1fr 1fr}
+  }
+
+  /* ── Misc ── */
+  .divider{border:none;border-top:1px solid var(--gray-200);margin:20px 0}
+  .text-right{text-align:right}
+  .text-center{text-align:center}
+  .font-mono{font-family:'Courier New',monospace}
+  .mt-16{margin-top:16px}
+  .mb-16{margin-bottom:16px}
+  .text-muted{color:var(--gray-400)}
+  .fw-700{font-weight:700}
+  .section-gap{display:flex;flex-direction:column;gap:20px}
+  .hidden{display:none}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .info-item label{font-size:11px;color:var(--gray-400);display:block}
+  .info-item span{font-size:13px;font-weight:600;color:var(--gray-800)}
+  .toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--gray-900);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);animation:slideUp .3s ease}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .empty-state{text-align:center;padding:48px 20px;color:var(--gray-400)}
+  .empty-state .icon{font-size:40px;margin-bottom:12px}
+  .empty-state p{font-size:14px}
+  .input-prefix{display:flex;border:1px solid var(--gray-300);border-radius:6px;overflow:hidden}
+  .input-prefix span{background:var(--gray-100);padding:8px 12px;font-size:13px;color:var(--gray-500);border-right:1px solid var(--gray-300)}
+  .input-prefix input{flex:1;border:none;padding:8px 12px;font-size:13px;outline:none}
+  .two-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .three-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  @media(max-width:600px){.two-cols,.three-cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="text/javascript">
+// ══════════════════════════════════════════════════════════
+// KENYA PAYROLL SYSTEM — Full Application
+// ══════════════════════════════════════════════════════════
+
+// ── Kenya Tax Rates 2024/2025 ──────────────────────────────
+const TAX_BANDS = [
+  { limit: 24000,   rate: 0.10 },
+  { limit: 8333,    rate: 0.25 },
+  { limit: 467667,  rate: 0.30 },
+  { limit: 300000,  rate: 0.325 },
+  { limit: Infinity,rate: 0.35 },
+];
+const PERSONAL_RELIEF    = 2400;
+const NSSF_TIER1_LIMIT   = 6000;
+const NSSF_TIER2_LIMIT   = 12000;
+const NSSF_RATE          = 0.06;
+const SHIF_RATE          = 0.0275;
+const AHL_RATE           = 0.015;
+
+// ── PAYE Calculation ──────────────────────────────────────
+function calcPAYE(grossTaxable, empType = 'primary') {
+  if (empType === 'secondary') {
+    return grossTaxable * 0.30;
+  }
+  let tax = 0, remaining = grossTaxable;
+  for (const band of TAX_BANDS) {
+    if (remaining <= 0) break;
+    const taxable = Math.min(remaining, band.limit);
+    tax += taxable * band.rate;
+    remaining -= taxable;
+  }
+  return Math.max(0, tax - PERSONAL_RELIEF);
+}
+
+// ── NSSF Calculation (Tier I + II) ────────────────────────
+function calcNSSF(basicSalary) {
+  const tier1 = Math.min(basicSalary, NSSF_TIER1_LIMIT) * NSSF_RATE;
+  const tier2 = basicSalary > NSSF_TIER1_LIMIT
+    ? Math.min(basicSalary - NSSF_TIER1_LIMIT, NSSF_TIER2_LIMIT - NSSF_TIER1_LIMIT) * NSSF_RATE
+    : 0;
+  return { tier1, tier2, total: tier1 + tier2 };
+}
+
+// ── SHIF (Social Health Insurance Fund) ───────────────────
+function calcSHIF(grossSalary, empType = 'primary') {
+  if (empType === 'secondary') return 0;
+  return Math.max(300, grossSalary * SHIF_RATE);
+}
+
+// ── AHL (Affordable Housing Levy) ─────────────────────────
+function calcAHL(grossSalary, empType = 'primary') {
+  if (empType === 'secondary') return 0;
+  return grossSalary * AHL_RATE;
+}
+
+// ── Full Payroll Computation ───────────────────────────────
+function computePayroll(employee, month, year) {
+  const basic   = employee.basicSalary;
+  const empType = employee.empType || 'primary';
+
+  // Sum all allowances
+  const allowances = (employee.allowances || []).reduce((s, a) => s + (a.amount || 0), 0);
+  const grossSalary = basic + allowances;
+
+  // Statutory deductions
+  const nssf = calcNSSF(basic);
+  const shif = calcSHIF(grossSalary, empType);
+  const ahl  = calcAHL(grossSalary, empType);
+
+  // Taxable income = Gross − NSSF (employee)
+  const taxableIncome = grossSalary - nssf.total;
+  const paye = calcPAYE(taxableIncome, empType);
+
+  // Other deductions
+  const otherDeductions = (employee.deductions || []).reduce((s, d) => s + (d.amount || 0), 0);
+
+  const totalDeductions = nssf.total + shif + ahl + paye + otherDeductions;
+  const netPay = grossSalary - totalDeductions;
+
+  return {
+    employeeId: employee.id,
+    employeeName: `${employee.firstName} ${employee.lastName}`,
+    kraPin: employee.kraPin || '',
+    idNumber: employee.idNumber || '',
+    basicSalary: basic,
+    allowances,
+    grossSalary,
+    nssfTier1: nssf.tier1,
+    nssfTier2: nssf.tier2,
+    nssf: nssf.total,
+    shif,
+    ahl,
+    paye,
+    taxableIncome,
+    otherDeductions,
+    totalDeductions,
+    netPay,
+    empType,
+    month, year
+  };
+}
+
+// ── State Management ───────────────────────────────────────
+let state = {
+  page: 'dashboard',
+  modal: null,
+  company: {
+    name: 'Acacia Enterprises Ltd',
+    kraPin: 'P051234567A',
+    nssfNo: 'NSSF/001/2024',
+    shifNo: 'SHA/001/2024',
+    address: 'Westlands, Nairobi',
+    email: 'hr@acaciaenterprises.co.ke',
+    phone: '+254 700 000 000',
+    logo: null,
+  },
+  currentPeriod: { month: 7, year: 2025 },
+  employees: [
+    { id:'E001', firstName:'James', lastName:'Kamau', idNumber:'12345678', kraPin:'A001234567W', nssfNo:'2000001', department:'Finance', designation:'Accountant', basicSalary:85000, empType:'primary', email:'james@co.ke', phone:'0722000001', status:'active', dateHired:'2022-01-01', allowances:[{name:'House Allowance',amount:15000},{name:'Transport',amount:5000}], deductions:[{name:'HELB',amount:2500}] },
+    { id:'E002', firstName:'Faith', lastName:'Wanjiru', idNumber:'23456789', kraPin:'A002345678X', nssfNo:'2000002', department:'HR', designation:'HR Manager', basicSalary:120000, empType:'primary', email:'faith@co.ke', phone:'0733000002', status:'active', dateHired:'2021-06-15', allowances:[{name:'House Allowance',amount:25000},{name:'Transport',amount:8000},{name:'Medical',amount:5000}], deductions:[] },
+    { id:'E003', firstName:'David', lastName:'Ochieng', idNumber:'34567890', kraPin:'A003456789Y', nssfNo:'2000003', department:'IT', designation:'Software Engineer', basicSalary:95000, empType:'primary', email:'david@co.ke', phone:'0744000003', status:'active', dateHired:'2023-03-01', allowances:[{name:'House Allowance',amount:20000},{name:'Airtime',amount:2000}], deductions:[{name:'Salary Advance',amount:10000}] },
+    { id:'E004', firstName:'Mary', lastName:'Atieno', idNumber:'45678901', kraPin:'A004567890Z', nssfNo:'2000004', department:'Sales', designation:'Sales Executive', basicSalary:55000, empType:'primary', email:'mary@co.ke', phone:'0755000004', status:'active', dateHired:'2023-09-01', allowances:[{name:'Commute',amount:4000},{name:'Commission',amount:12000}], deductions:[] },
+    { id:'E005', firstName:'Peter', lastName:'Mwangi', idNumber:'56789012', kraPin:'A005678901P', nssfNo:'2000005', department:'Operations', designation:'Operations Lead', basicSalary:70000, empType:'secondary', email:'peter@co.ke', phone:'0766000005', status:'active', dateHired:'2024-01-15', allowances:[{name:'Transport',amount:6000}], deductions:[] },
+  ],
+  payrollRuns: [],
+  loans: [
+    { id:'L001', employeeId:'E001', employeeName:'James Kamau', loanType:'Salary Advance', amount:50000, balance:50000, monthlyRepayment:2500, startMonth:7, startYear:2025, status:'active' },
+    { id:'L002', employeeId:'E003', employeeName:'David Ochieng', loanType:'Emergency Loan', amount:30000, balance:30000, monthlyRepayment:10000, startMonth:7, startYear:2025, status:'active' },
+  ],
+  activeTab: 0,
+  editEmployee: null,
+  viewPayslip: null,
+  toast: null,
+};
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DEPARTMENTS = ['Finance','HR','IT','Sales','Operations','Management','Legal','Marketing'];
+
+// ── Toast ──────────────────────────────────────────────────
+function showToast(msg) {
+  state.toast = msg;
+  render();
+  setTimeout(() => { state.toast = null; render(); }, 3000);
+}
+
+// ── Helpers ────────────────────────────────────────────────
+const fmt = n => 'Kshs ' + (n||0).toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtN = n => (n||0).toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+const monthYear = (m,y) => `${MONTHS[m-1]} ${y}`;
+const uid = () => 'ID'+Date.now().toString(36).toUpperCase();
+
+function getPayrollForPeriod(month, year) {
+  return state.employees
+    .filter(e => e.status === 'active')
+    .map(e => computePayroll(e, month, year));
+}
+
+function currentPayroll() {
+  return getPayrollForPeriod(state.currentPeriod.month, state.currentPeriod.year);
+}
+
+// ── Navigation ─────────────────────────────────────────────
+const NAV = [
+  { section: 'Main' },
+  { id:'dashboard',   icon:'📊', label:'Dashboard' },
+  { id:'employees',   icon:'👥', label:'Employees' },
+  { section: 'Payroll' },
+  { id:'payroll-run', icon:'💰', label:'Payroll Run' },
+  { id:'loans',       icon:'🏦', label:'Loan Module' },
+  { section: 'Reports' },
+  { id:'payslips',    icon:'📄', label:'Payslips' },
+  { id:'masterroll',  icon:'📋', label:'Master Roll' },
+  { id:'paye',        icon:'🏛️', label:'PAYE Report' },
+  { id:'nssf',        icon:'🛡️', label:'NSSF Report' },
+  { id:'shif',        icon:'🏥', label:'SHA/SHIF Report' },
+  { id:'ahl',         icon:'🏠', label:'AHL Report' },
+  { section: 'Statutory' },
+  { id:'p10',         icon:'📑', label:'P10 Schedule' },
+  { id:'p9',          icon:'📃', label:'P9 Forms' },
+  { id:'filing',      icon:'📤', label:'Statutory Filing' },
+  { section: 'Settings' },
+  { id:'company',     icon:'⚙️', label:'Company Settings' },
+];
+
+// ══════════════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ══════════════════════════════════════════════════════════
+
+function renderSidebar() {
+  return `
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">🇰🇪 PayrollKE</div>
+      <div class="logo-sub">Kenya Payroll System</div>
+    </div>
+    <div class="sidebar-company">
+      <div class="company-name">${state.company.name}</div>
+      <div class="company-period">${monthYear(state.currentPeriod.month, state.currentPeriod.year)}</div>
+    </div>
+    <nav class="sidebar-nav">
+      ${NAV.map(item => {
+        if (item.section) return `<div class="nav-section">${item.section}</div>`;
+        return `<div class="nav-item ${state.page===item.id?'active':''}" onclick="navigate('${item.id}')">
+          <span class="icon">${item.icon}</span>${item.label}
+        </div>`;
+      }).join('')}
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-name">HR Administrator</div>
+      <div class="user-role">${state.company.name}</div>
+    </div>
+  </div>`;
+}
+
+function renderTopbar() {
+  const labels = { 'dashboard':'Dashboard','employees':'Employees','payroll-run':'Payroll Run','payslips':'Payslips','masterroll':'Master Roll','paye':'PAYE Report','nssf':'NSSF Report','shif':'SHA/SHIF Report','ahl':'AHL Report','p10':'P10 Schedule','p9':'P9 Forms','filing':'Statutory Filing','company':'Company Settings','loans':'Loan Module' };
+  return `
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-weight:700;font-size:15px;color:var(--gray-900)">${labels[state.page]||''}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <select class="form-control" style="width:auto;font-size:12px" onchange="changePeriod(this.value)">
+        ${Array.from({length:12},(_,i)=>{
+          const m=i+1,y=2025;
+          const val=`${m}-${y}`;
+          const sel=(m===state.currentPeriod.month && y===state.currentPeriod.year)?'selected':'';
+          return `<option value="${val}" ${sel}>${MONTHS[i]} ${y}</option>`;
+        }).join('')}
+      </select>
+      <span style="font-size:20px">👤</span>
+    </div>
+  </div>`;
+}
+
+// ── Dashboard ──────────────────────────────────────────────
+function renderDashboard() {
+  const pr = currentPayroll();
+  const totalGross = pr.reduce((s,r)=>s+r.grossSalary,0);
+  const totalNet   = pr.reduce((s,r)=>s+r.netPay,0);
+  const totalPAYE  = pr.reduce((s,r)=>s+r.paye,0);
+  const totalNSSF  = pr.reduce((s,r)=>s+r.nssf,0);
+  const totalSHIF  = pr.reduce((s,r)=>s+r.shif,0);
+  const totalAHL   = pr.reduce((s,r)=>s+r.ahl,0);
+  const activeEmps = state.employees.filter(e=>e.status==='active').length;
+
+  // Build chart data for last 6 months
+  const chartMonths = [];
+  for (let i=5;i>=0;i--) {
+    let m = state.currentPeriod.month - i;
+    let y = state.currentPeriod.year;
+    if (m<=0){m+=12;y--;}
+    const pr2 = getPayrollForPeriod(m,y);
+    chartMonths.push({
+      label: MONTHS[m-1].slice(0,3),
+      gross: pr2.reduce((s,r)=>s+r.grossSalary,0),
+      net:   pr2.reduce((s,r)=>s+r.netPay,0),
+      paye:  pr2.reduce((s,r)=>s+r.paye,0),
+    });
+  }
+  const maxVal = Math.max(...chartMonths.map(c=>c.gross),1);
+
+  return `
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue">👥</div>
+      <div>
+        <div class="stat-label">Active Employees</div>
+        <div class="stat-value">${activeEmps}</div>
+        <div class="stat-sub">Permanent staff</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">💰</div>
+      <div>
+        <div class="stat-label">Total Gross Pay</div>
+        <div class="stat-value">${fmt(totalGross)}</div>
+        <div class="stat-sub">${monthYear(state.currentPeriod.month,state.currentPeriod.year)}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon teal">✅</div>
+      <div>
+        <div class="stat-label">Total Net Pay</div>
+        <div class="stat-value">${fmt(totalNet)}</div>
+        <div class="stat-sub">After all deductions</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber">🏛️</div>
+      <div>
+        <div class="stat-label">Total PAYE</div>
+        <div class="stat-value">${fmt(totalPAYE)}</div>
+        <div class="stat-sub">Due to KRA</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">🛡️</div>
+      <div>
+        <div class="stat-label">Total NSSF</div>
+        <div class="stat-value">${fmt(totalNSSF)}</div>
+        <div class="stat-sub">Employee contribution</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">🏥</div>
+      <div>
+        <div class="stat-label">SHA/SHIF + AHL</div>
+        <div class="stat-value">${fmt(totalSHIF+totalAHL)}</div>
+        <div class="stat-sub">Health + Housing levy</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-cols">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📈 Payroll Trend — Last 6 Months</div>
+      </div>
+      <div class="card-body">
+        <div class="chart-bar-container">
+          ${chartMonths.map(c=>`
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar" style="background:var(--blue);height:${Math.round(c.gross/maxVal*140)}px" title="Gross: ${fmt(c.gross)}"></div>
+              <div class="chart-bar" style="background:var(--green);height:${Math.round(c.net/maxVal*140)}px" title="Net: ${fmt(c.net)}"></div>
+              <div class="chart-bar" style="background:var(--amber);height:${Math.round(c.paye/maxVal*140)}px" title="PAYE: ${fmt(c.paye)}"></div>
+            </div>
+            <div class="chart-label">${c.label}</div>
+          </div>`).join('')}
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Gross</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Net</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>PAYE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📊 Deduction Breakdown</div>
+      </div>
+      <div class="card-body">
+        ${[
+          ['PAYE (KRA)',totalPAYE,'var(--amber)'],
+          ['NSSF',totalNSSF,'var(--blue)'],
+          ['SHA/SHIF',totalSHIF,'var(--red)'],
+          ['AHL',totalAHL,'var(--teal)'],
+          ['Other Deductions',pr.reduce((s,r)=>s+r.otherDeductions,0),'var(--gray-400)'],
+        ].map(([label,val,color])=>{
+          const pct = totalGross?Math.round(val/totalGross*100):0;
+          return `<div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:12px;font-weight:600;color:var(--gray-700)">${label}</span>
+              <span style="font-size:12px;font-weight:700">${fmt(val)} <span class="text-muted">(${pct}%)</span></span>
+            </div>
+            <div style="background:var(--gray-100);border-radius:99px;height:8px">
+              <div style="background:${color};height:8px;border-radius:99px;width:${pct}%"></div>
+            </div>
+          </div>`;
+        }).join('')}
+        <div style="border-top:1px solid var(--gray-200);padding-top:12px;margin-top:4px;display:flex;justify-content:space-between;font-weight:700">
+          <span>Total Deductions</span><span>${fmt(pr.reduce((s,r)=>s+r.totalDeductions,0))}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-16">
+    <div class="card-header">
+      <div class="card-title">📋 Employee Summary — ${monthYear(state.currentPeriod.month,state.currentPeriod.year)}</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Employee</th><th>Department</th><th>Gross Pay</th><th>PAYE</th><th>NSSF</th><th>SHIF</th><th>AHL</th><th>Net Pay</th>
+        </tr></thead>
+        <tbody>
+          ${pr.map(r=>`<tr>
+            <td><strong>${r.employeeName}</strong><br><span class="text-muted" style="font-size:11px">${r.kraPin}</span></td>
+            <td>${state.employees.find(e=>e.id===r.employeeId)?.department||''}</td>
+            <td>${fmt(r.grossSalary)}</td>
+            <td>${fmt(r.paye)}</td>
+            <td>${fmt(r.nssf)}</td>
+            <td>${fmt(r.shif)}</td>
+            <td>${fmt(r.ahl)}</td>
+            <td><strong style="color:var(--green)">${fmt(r.netPay)}</strong></td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="2">TOTAL</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.grossSalary,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.paye,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.nssf,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.shif,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.ahl,0))}</td>
+          <td><strong>${fmt(pr.reduce((s,r)=>s+r.netPay,0))}</strong></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Employees ──────────────────────────────────────────────
+function renderEmployees() {
+  return `
+  <div class="page-header-row">
+    <div>
+      <div class="page-title">Employee Management</div>
+      <div class="page-sub">${state.employees.length} employees registered</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="openImportModal()">📥 Import Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="openAddEmployee()">+ Add Employee</button>
+    </div>
+  </div>
+
+  <div class="card mt-16">
+    <div class="card-body p-0 table-wrap">
+      <table>
+        <thead><tr>
+          <th>Employee ID</th><th>Name</th><th>Department</th><th>Designation</th>
+          <th>Basic Salary</th><th>Type</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+          ${state.employees.map(e=>`<tr>
+            <td><span class="font-mono" style="font-size:12px;color:var(--blue)">${e.id}</span></td>
+            <td>
+              <strong>${e.firstName} ${e.lastName}</strong>
+              <br><span class="text-muted" style="font-size:11px">${e.email}</span>
+            </td>
+            <td>${e.department}</td>
+            <td>${e.designation}</td>
+            <td>${fmt(e.basicSalary)}</td>
+            <td><span class="badge ${e.empType==='primary'?'blue':'amber'}">${e.empType==='primary'?'Primary':'Secondary'}</span></td>
+            <td><span class="badge ${e.status==='active'?'green':'red'}">${e.status}</span></td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-outline btn-xs" onclick="openEditEmployee('${e.id}')">✏️ Edit</button>
+                <button class="btn btn-outline btn-xs" onclick="viewEmployeePayslip('${e.id}')">📄 Payslip</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Payroll Run ────────────────────────────────────────────
+function renderPayrollRun() {
+  const pr = currentPayroll();
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div>
+      <div class="page-title">Payroll Run — ${period}</div>
+      <div class="page-sub">Review and process payroll for ${pr.length} employees</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="exportMasterRoll()">📊 Export Excel</button>
+      <button class="btn btn-outline btn-sm" onclick="exportMasterRollPDF()">📄 Export PDF</button>
+      <button class="btn btn-success btn-sm" onclick="processPayroll()">✅ Process Payroll</button>
+    </div>
+  </div>
+
+  <div class="alert info">ℹ️ Kenya Tax Rates: PAYE (10%–35%), NSSF Tier I+II (6%), SHA/SHIF (2.75% min Kshs 300), AHL (1.5%). Personal Relief: Kshs 2,400/month.</div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📋 Payroll Grid — ${period}</div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Employee</th><th>Type</th><th>Basic</th><th>Allowances</th><th>Gross</th>
+          <th>PAYE</th><th>NSSF</th><th>SHIF</th><th>AHL</th><th>Other Ded.</th><th>Total Ded.</th><th>Net Pay</th>
+        </tr></thead>
+        <tbody>
+          ${pr.map(r=>`<tr>
+            <td>
+              <strong>${r.employeeName}</strong>
+              <br><span class="text-muted" style="font-size:11px">${r.employeeId}</span>
+            </td>
+            <td><span class="badge ${r.empType==='primary'?'blue':'amber'}">${r.empType}</span></td>
+            <td>${fmt(r.basicSalary)}</td>
+            <td>${fmt(r.allowances)}</td>
+            <td><strong>${fmt(r.grossSalary)}</strong></td>
+            <td style="color:var(--amber)">${fmt(r.paye)}</td>
+            <td style="color:var(--blue)">${fmt(r.nssf)}</td>
+            <td style="color:var(--red)">${fmt(r.shif)}</td>
+            <td style="color:var(--teal)">${fmt(r.ahl)}</td>
+            <td>${fmt(r.otherDeductions)}</td>
+            <td style="color:var(--red)">${fmt(r.totalDeductions)}</td>
+            <td><strong style="color:var(--green)">${fmt(r.netPay)}</strong></td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="2"><strong>TOTALS</strong></td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.basicSalary,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.allowances,0))}</td>
+          <td><strong>${fmt(pr.reduce((s,r)=>s+r.grossSalary,0))}</strong></td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.paye,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.nssf,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.shif,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.ahl,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.otherDeductions,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.totalDeductions,0))}</td>
+          <td><strong style="color:var(--green)">${fmt(pr.reduce((s,r)=>s+r.netPay,0))}</strong></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Payslips ───────────────────────────────────────────────
+function renderPayslips() {
+  const pr = currentPayroll();
+  if (state.viewPayslip) {
+    const r = pr.find(p=>p.employeeId===state.viewPayslip);
+    const emp = state.employees.find(e=>e.id===state.viewPayslip);
+    if (r && emp) return renderSinglePayslip(r, emp);
+  }
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">Payslips</div><div class="page-sub">${monthYear(state.currentPeriod.month,state.currentPeriod.year)}</div></div>
+    <button class="btn btn-primary btn-sm" onclick="sendAllPayslips()">📧 Email All Payslips</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>Department</th><th>Gross Pay</th><th>Net Pay</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${pr.map(r=>{
+            const emp=state.employees.find(e=>e.id===r.employeeId);
+            return `<tr>
+              <td><strong>${r.employeeName}</strong><br><span class="text-muted" style="font-size:11px">${r.employeeId}</span></td>
+              <td>${emp?.department||''}</td>
+              <td>${fmt(r.grossSalary)}</td>
+              <td><strong style="color:var(--green)">${fmt(r.netPay)}</strong></td>
+              <td><span class="badge green">Generated</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-outline btn-xs" onclick="viewPayslipPage('${r.employeeId}')">👁 View</button>
+                  <button class="btn btn-outline btn-xs" onclick="downloadPayslipPDF('${r.employeeId}')">📄 PDF</button>
+                  <button class="btn btn-outline btn-xs" onclick="emailPayslip('${r.employeeId}')">📧 Email</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderSinglePayslip(r, emp) {
+  const period = monthYear(r.month, r.year);
+  const allowances = emp.allowances || [];
+  const deductions = emp.deductions || [];
+  return `
+  <div class="page-header-row" style="margin-bottom:16px">
+    <div><div class="page-title">Payslip — ${r.employeeName}</div><div class="page-sub">${period}</div></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="state.viewPayslip=null;render()">← Back</button>
+      <button class="btn btn-primary btn-sm" onclick="downloadPayslipPDF('${r.employeeId}')">📄 Download PDF</button>
+      <button class="btn btn-outline btn-sm" onclick="emailPayslip('${r.employeeId}')">📧 Email</button>
+    </div>
+  </div>
+  <div class="payslip">
+    <div class="payslip-header">
+      <div>
+        <div class="payslip-company">${state.company.name}</div>
+        <div class="payslip-period" style="font-size:11px;color:var(--gray-400);margin-top:4px">${state.company.address}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:20px;font-weight:800;color:var(--navy)">PAYSLIP</div>
+        <div class="payslip-period">Period: ${period}</div>
+      </div>
+    </div>
+
+    <div class="payslip-employee">
+      ${[['Employee Name',r.employeeName],['Employee ID',r.employeeId],['Department',emp.department],['Designation',emp.designation],['KRA PIN',emp.kraPin],['NSSF No.',emp.nssfNo],['ID Number',emp.idNumber],['Employment Type',r.empType==='primary'?'Primary':'Secondary']].map(([l,v])=>`
+      <div class="info-item"><label>${l}</label><span>${v||'—'}</span></div>`).join('')}
+    </div>
+
+    <div class="payslip-section">Earnings</div>
+    <div class="payslip-row"><span>Basic Salary</span><span><strong>${fmt(r.basicSalary)}</strong></span></div>
+    ${allowances.map(a=>`<div class="payslip-row"><span>${a.name}</span><span>${fmt(a.amount)}</span></div>`).join('')}
+    <div class="payslip-row" style="font-weight:700"><span>GROSS PAY</span><span>${fmt(r.grossSalary)}</span></div>
+
+    <div class="payslip-section">Statutory Deductions</div>
+    <div class="payslip-row"><span>PAYE (Income Tax)</span><span style="color:var(--red)">(${fmt(r.paye)})</span></div>
+    <div class="payslip-row"><span>NSSF — Tier I</span><span style="color:var(--red)">(${fmt(r.nssfTier1)})</span></div>
+    <div class="payslip-row"><span>NSSF — Tier II</span><span style="color:var(--red)">(${fmt(r.nssfTier2)})</span></div>
+    <div class="payslip-row"><span>SHA / SHIF (2.75%)</span><span style="color:var(--red)">(${fmt(r.shif)})</span></div>
+    <div class="payslip-row"><span>Affordable Housing Levy (1.5%)</span><span style="color:var(--red)">(${fmt(r.ahl)})</span></div>
+    ${r.empType==='secondary'?`<div class="alert warning" style="margin-top:8px;font-size:11px">⚠️ Secondary employment: PAYE @ 30% of gross. No SHIF, AHL, or personal relief applied.</div>`:''}
+
+    ${deductions.length?`
+    <div class="payslip-section">Other Deductions</div>
+    ${deductions.map(d=>`<div class="payslip-row"><span>${d.name}</span><span style="color:var(--red)">(${fmt(d.amount)})</span></div>`).join('')}`:''}
+
+    <div class="payslip-row" style="font-weight:700;margin-top:8px">
+      <span>TOTAL DEDUCTIONS</span><span style="color:var(--red)">(${fmt(r.totalDeductions)})</span>
+    </div>
+
+    <div class="payslip-net">
+      <span>NET PAY</span>
+      <span>${fmt(r.netPay)}</span>
+    </div>
+
+    <div style="margin-top:20px;font-size:11px;color:var(--gray-400);text-align:center">
+      This is a computer-generated payslip and does not require a signature.<br>
+      Generated: ${new Date().toLocaleDateString('en-KE')} | ${state.company.name} | ${state.company.email}
+    </div>
+  </div>`;
+}
+
+// ── Master Roll ────────────────────────────────────────────
+function renderMasterRoll() {
+  const pr = currentPayroll();
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">Master Roll — ${period}</div><div class="page-sub">Complete payroll register for all employees</div></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="exportMasterRoll()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="exportMasterRollPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">${state.company.name}</div>
+        <div style="font-size:12px;color:var(--gray-500)">Master Roll for ${period}</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Emp ID</th><th>Name</th><th>KRA PIN</th><th>NSSF No.</th>
+          <th>Basic</th><th>Allowances</th><th>Gross</th><th>PAYE</th><th>NSSF</th>
+          <th>SHIF</th><th>AHL</th><th>Other</th><th>Total Ded.</th><th>Net Pay</th>
+        </tr></thead>
+        <tbody>
+          ${pr.map((r,i)=>`<tr>
+            <td>${i+1}</td>
+            <td><span class="font-mono" style="font-size:11px">${r.employeeId}</span></td>
+            <td><strong>${r.employeeName}</strong></td>
+            <td class="font-mono" style="font-size:11px">${r.kraPin}</td>
+            <td class="font-mono" style="font-size:11px">${state.employees.find(e=>e.id===r.employeeId)?.nssfNo||''}</td>
+            <td>${fmtN(r.basicSalary)}</td>
+            <td>${fmtN(r.allowances)}</td>
+            <td><strong>${fmtN(r.grossSalary)}</strong></td>
+            <td>${fmtN(r.paye)}</td>
+            <td>${fmtN(r.nssf)}</td>
+            <td>${fmtN(r.shif)}</td>
+            <td>${fmtN(r.ahl)}</td>
+            <td>${fmtN(r.otherDeductions)}</td>
+            <td>${fmtN(r.totalDeductions)}</td>
+            <td><strong style="color:var(--green)">${fmtN(r.netPay)}</strong></td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="5"><strong>TOTALS</strong></td>
+          ${['basicSalary','allowances','grossSalary','paye','nssf','shif','ahl','otherDeductions','totalDeductions','netPay'].map(k=>`<td><strong>${fmtN(pr.reduce((s,r)=>s+r[k],0))}</strong></td>`).join('')}
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── PAYE Report ────────────────────────────────────────────
+function renderPAYE() {
+  const pr = currentPayroll();
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">PAYE Report — ${period}</div><div class="page-sub">Pay As You Earn — Due to KRA by 9th of following month</div></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="exportPAYEExcel()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="exportPAYEPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+  <div class="alert warning">⚠️ PAYE is due to KRA by the 9th of the following month. Late payment attracts a penalty of 5% of the outstanding tax plus 1% interest per month.</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Employee</th><th>KRA PIN</th><th>Taxable Income</th><th>Tax on Income</th><th>Personal Relief</th><th>PAYE Due</th><th>Emp. Type</th>
+        </tr></thead>
+        <tbody>
+          ${pr.map(r=>`<tr>
+            <td><strong>${r.employeeName}</strong></td>
+            <td class="font-mono" style="font-size:11px">${r.kraPin}</td>
+            <td>${fmt(r.taxableIncome)}</td>
+            <td>${fmt(r.paye + (r.empType==='primary'?PERSONAL_RELIEF:0))}</td>
+            <td>${r.empType==='primary'?fmt(PERSONAL_RELIEF):'—'}</td>
+            <td><strong style="color:var(--amber)">${fmt(r.paye)}</strong></td>
+            <td><span class="badge ${r.empType==='primary'?'blue':'amber'}">${r.empType}</span></td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="5">TOTAL PAYE DUE</td>
+          <td><strong style="color:var(--amber)">${fmt(pr.reduce((s,r)=>s+r.paye,0))}</strong></td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── NSSF Report ────────────────────────────────────────────
+function renderNSSF() {
+  const pr = currentPayroll();
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">NSSF Report — ${period}</div><div class="page-sub">National Social Security Fund — Tier I & II contributions</div></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="exportNSSFExcel()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="exportNSSFPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Employee</th><th>NSSF No.</th><th>Basic Salary</th><th>Tier I (6% up to 6,000)</th><th>Tier II (6% up to 12,000)</th><th>Total Employee</th><th>Employer (3x Tier I)</th>
+        </tr></thead>
+        <tbody>
+          ${pr.map(r=>{
+            const emp=state.employees.find(e=>e.id===r.employeeId);
+            const employer=r.nssfTier1*3;
+            return `<tr>
+              <td><strong>${r.employeeName}</strong></td>
+              <td class="font-mono" style="font-size:11px">${emp?.nssfNo||''}</td>
+              <td>${fmt(r.basicSalary)}</td>
+              <td>${fmt(r.nssfTier1)}</td>
+              <td>${fmt(r.nssfTier2)}</td>
+              <td><strong style="color:var(--blue)">${fmt(r.nssf)}</strong></td>
+              <td style="color:var(--teal)">${fmt(employer)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="3">TOTALS</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.nssfTier1,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.nssfTier2,0))}</td>
+          <td><strong>${fmt(pr.reduce((s,r)=>s+r.nssf,0))}</strong></td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.nssfTier1*3,0))}</td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── SHIF Report ────────────────────────────────────────────
+function renderSHIF() {
+  const pr = currentPayroll();
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">SHA/SHIF Report — ${period}</div><div class="page-sub">Social Health Insurance Fund — 2.75% of gross (min Kshs 300)</div></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="exportSHIFExcel()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="exportSHIFPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>Gross Salary</th><th>SHIF Rate</th><th>SHIF Amount</th><th>Note</th></tr></thead>
+        <tbody>
+          ${pr.map(r=>`<tr>
+            <td><strong>${r.employeeName}</strong></td>
+            <td>${fmt(r.grossSalary)}</td>
+            <td>${r.empType==='primary'?'2.75%':'0% (Secondary)'}</td>
+            <td><strong style="color:var(--red)">${fmt(r.shif)}</strong></td>
+            <td style="font-size:11px;color:var(--gray-400)">${r.shif===300?'Minimum applied':''}</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="3">TOTAL SHIF</td>
+          <td><strong>${fmt(pr.reduce((s,r)=>s+r.shif,0))}</strong></td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── AHL Report ─────────────────────────────────────────────
+function renderAHL() {
+  const pr = currentPayroll();
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">AHL Report — ${period}</div><div class="page-sub">Affordable Housing Levy — 1.5% of gross salary</div></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="exportAHLExcel()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="exportAHLPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>KRA PIN</th><th>Gross Salary</th><th>AHL Rate</th><th>Employee AHL</th><th>Employer AHL</th><th>Total AHL</th></tr></thead>
+        <tbody>
+          ${pr.map(r=>`<tr>
+            <td><strong>${r.employeeName}</strong></td>
+            <td class="font-mono" style="font-size:11px">${r.kraPin}</td>
+            <td>${fmt(r.grossSalary)}</td>
+            <td>${r.empType==='primary'?'1.5%':'0% (Secondary)'}</td>
+            <td style="color:var(--teal)">${fmt(r.ahl)}</td>
+            <td style="color:var(--teal)">${fmt(r.ahl)}</td>
+            <td><strong style="color:var(--teal)">${fmt(r.ahl*2)}</strong></td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="4">TOTALS</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.ahl,0))}</td>
+          <td>${fmt(pr.reduce((s,r)=>s+r.ahl,0))}</td>
+          <td><strong>${fmt(pr.reduce((s,r)=>s+r.ahl*2,0))}</strong></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── P10 Schedule ───────────────────────────────────────────
+function renderP10() {
+  const pr = currentPayroll();
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  // KRA-compatible P10 simplified columns
+  const cols = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+  const headers = [
+    'A: PIN','B: Name','C: Gross Pay','D: Type','E: Housing Benefit','F: Benefits in Kind',
+    'G: Total Cash Pay','H: Owner Occ Int','I: Personal Relief',
+    'J: Insurance Relief','K: Disability Exempt','L: Investment Deduct.',
+    'M: Mortgage Relief','N: PAYE Calc.','O: SHIF','P: AHL','Q: NSSF Emp',
+    'R: Pension Contrib','S: Taxable Pay','T: PAYE Deducted',
+    'U: Monthly Reliefs','V: Personal Relief','W: Ins. Relief','X: Disability',
+    'Y: PAYE Payable','Z: Net Pay'
+  ];
+
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">P10 Schedule — KRA Simplified Format</div><div class="page-sub">${period} | Compatible with KRA iTax Import</div></div>
+    <div class="btn-group">
+      <button class="btn btn-amber btn-sm" onclick="downloadP10CSV()">📤 Download P10 CSV (iTax)</button>
+      <button class="btn btn-outline btn-sm" onclick="exportP10Excel()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="exportP10PDF()">📄 Export PDF</button>
+    </div>
+  </div>
+
+  <div class="alert success">✅ This P10 is formatted to match KRA iTax P10 Simplified import template. Download the CSV and upload directly to iTax under Returns → PAYE → P10 Monthly Return.</div>
+  <div class="alert info">ℹ️ Secondary employees: Column G only has value, Column O (SHIF)=0, Column P (AHL)=0, Column T (PAYE deducted) = 0, Column V (Personal relief)=2400, Column Y = 30% of Column G.</div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">P10 Simplified — ${period}</div></div>
+    <div class="p10-preview">
+      <table class="p10-table">
+        <thead><tr>
+          <th>PIN</th><th>Employee Name</th><th>C: Gross</th><th>D: Type</th>
+          <th>G: Total Cash</th><th>N: PAYE Calc</th><th>O: SHIF</th><th>P: AHL</th>
+          <th>Q: NSSF</th><th>S: Taxable</th><th>T: PAYE Ded.</th><th>V: Pers. Relief</th><th>Y: PAYE Pay.</th>
+        </tr></thead>
+        <tbody>
+          ${pr.map(r=>{
+            const isPrimary = r.empType==='primary';
+            const colG = r.grossSalary;
+            const colO = isPrimary?r.shif:0;
+            const colP = isPrimary?r.ahl:0;
+            const colT = isPrimary?0:colG*0.30; // secondary: PAYE deducted = 30% of gross
+            const colV = isPrimary?PERSONAL_RELIEF:2400;
+            const colY = isPrimary?r.paye:colG*0.30;
+            return `<tr>
+              <td class="font-mono">${r.kraPin}</td>
+              <td>${r.employeeName}</td>
+              <td>${fmtN(r.grossSalary)}</td>
+              <td>${isPrimary?'Primary':'Secondary'}</td>
+              <td>${fmtN(colG)}</td>
+              <td>${fmtN(r.paye+(isPrimary?PERSONAL_RELIEF:0))}</td>
+              <td>${fmtN(colO)}</td>
+              <td>${fmtN(colP)}</td>
+              <td>${fmtN(r.nssf)}</td>
+              <td>${fmtN(r.taxableIncome)}</td>
+              <td>${fmtN(colT)}</td>
+              <td>${fmtN(colV)}</td>
+              <td><strong>${fmtN(colY)}</strong></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── P9 Forms ───────────────────────────────────────────────
+function renderP9() {
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">P9 Forms</div><div class="page-sub">Annual Tax Deduction Card — ${state.currentPeriod.year}</div></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="exportP9Excel()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="exportP9PDF()">📄 Export PDF</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Select Employee to View P9 Form</div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Select Employee</label>
+          <select class="form-control" id="p9EmpSelect" onchange="renderP9Preview()">
+            <option value="">-- Select Employee --</option>
+            ${state.employees.map(e=>`<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <select class="form-control"><option>2025</option><option>2024</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="p9Preview"></div>`;
+}
+
+function renderP9Preview() {
+  const empId = document.getElementById('p9EmpSelect')?.value;
+  const preview = document.getElementById('p9Preview');
+  if (!preview) return;
+  if (!empId) { preview.innerHTML=''; return; }
+  const emp = state.employees.find(e=>e.id===empId);
+  if (!emp) return;
+
+  // Compute for all 12 months
+  const rows = Array.from({length:12},(_,i)=>{
+    const r = computePayroll(emp, i+1, state.currentPeriod.year);
+    return r;
+  });
+
+  const totGross = rows.reduce((s,r)=>s+r.grossSalary,0);
+  const totBasic = rows.reduce((s,r)=>s+r.basicSalary,0);
+  const totPAYE  = rows.reduce((s,r)=>s+r.paye,0);
+  const totNSSF  = rows.reduce((s,r)=>s+r.nssf,0);
+
+  preview.innerHTML = `
+  <div class="card mt-16">
+    <div class="card-header">
+      <div>
+        <div class="card-title">P9 Form — ${emp.firstName} ${emp.lastName}</div>
+        <div style="font-size:12px;color:var(--gray-500)">Year: ${state.currentPeriod.year}</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline btn-sm" onclick="exportP9Excel()">📊 Excel</button>
+        <button class="btn btn-primary btn-sm" onclick="downloadP9PDF('${empId}')">📄 PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="emailP9('${empId}')">📧 Email</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid-3">
+        ${[['Employee Name',`${emp.firstName} ${emp.lastName}`],['Employee ID',emp.id],['KRA PIN',emp.kraPin],['ID Number',emp.idNumber],['Designation',emp.designation],['Tax Year',state.currentPeriod.year]].map(([l,v])=>`
+        <div class="info-item"><label>${l}</label><span>${v||'—'}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>Basic Salary</th><th>Allowances</th><th>Gross Pay</th><th>NSSF</th><th>Taxable Pay</th><th>Tax on Income</th><th>Less: Relief</th><th>PAYE Payable</th></tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>`<tr>
+            <td>${MONTHS[i]}</td>
+            <td>${fmtN(r.basicSalary)}</td>
+            <td>${fmtN(r.allowances)}</td>
+            <td>${fmtN(r.grossSalary)}</td>
+            <td>${fmtN(r.nssf)}</td>
+            <td>${fmtN(r.taxableIncome)}</td>
+            <td>${fmtN(r.paye+PERSONAL_RELIEF)}</td>
+            <td>${fmtN(PERSONAL_RELIEF)}</td>
+            <td><strong>${fmtN(r.paye)}</strong></td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr class="tfoot-row">
+          <td><strong>TOTALS</strong></td>
+          <td>${fmtN(totBasic)}</td>
+          <td>${fmtN(totGross-totBasic)}</td>
+          <td><strong>${fmtN(totGross)}</strong></td>
+          <td>${fmtN(totNSSF)}</td>
+          <td>${fmtN(totGross-totNSSF)}</td>
+          <td>${fmtN(totPAYE+PERSONAL_RELIEF*12)}</td>
+          <td>${fmtN(PERSONAL_RELIEF*12)}</td>
+          <td><strong>${fmtN(totPAYE)}</strong></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Statutory Filing ───────────────────────────────────────
+function renderFiling() {
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">Statutory Filing</div><div class="page-sub">Download returns for filing — ${period}</div></div>
+  </div>
+
+  <div class="alert success">✅ All files below are ready for upload to the respective portals. Ensure you file by the statutory deadlines to avoid penalties.</div>
+
+  <div class="three-cols">
+    <div class="card">
+      <div class="card-body" style="text-align:center">
+        <div style="font-size:40px;margin-bottom:12px">🏛️</div>
+        <div class="card-title">P10 — KRA iTax</div>
+        <div style="font-size:12px;color:var(--gray-500);margin:8px 0">Simplified P10 CSV for PAYE filing</div>
+        <div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:16px">⏰ Due: 9th ${MONTHS[state.currentPeriod.month]||'next month'} ${state.currentPeriod.year}</div>
+        <button class="btn btn-amber btn-sm" onclick="downloadP10CSV()" style="width:100%">📤 Download P10 CSV</button>
+        <div style="margin-top:8px;font-size:11px;color:var(--gray-400)">Upload at: itax.kra.go.ke → Returns → PAYE</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" style="text-align:center">
+        <div style="font-size:40px;margin-bottom:12px">🛡️</div>
+        <div class="card-title">NSSF Return</div>
+        <div style="font-size:12px;color:var(--gray-500);margin:8px 0">Employee & employer contributions</div>
+        <div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:16px">⏰ Due: 9th of following month</div>
+        <button class="btn btn-blue btn-sm" style="background:var(--blue);color:#fff;width:100%" onclick="downloadNSSFReturn()">📤 Download NSSF Return</button>
+        <div style="margin-top:8px;font-size:11px;color:var(--gray-400)">Upload at: nssf.or.ke → Employer Portal</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" style="text-align:center">
+        <div style="font-size:40px;margin-bottom:12px">🏥</div>
+        <div class="card-title">SHA / SHIF Return</div>
+        <div style="font-size:12px;color:var(--gray-500);margin:8px 0">Social Health Insurance Fund</div>
+        <div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:16px">⏰ Due: 9th of following month</div>
+        <button class="btn btn-danger btn-sm" style="width:100%" onclick="downloadSHIFReturn()">📤 Download SHA Return</button>
+        <div style="margin-top:8px;font-size:11px;color:var(--gray-400)">Upload at: sha.go.ke → Employer Portal</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Loans ──────────────────────────────────────────────────
+function renderLoans() {
+  return `
+  <div class="page-header-row">
+    <div><div class="page-title">Loan Module</div><div class="page-sub">Track employee loans and auto-deduct repayments from payroll</div></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddLoan()">+ Add Loan</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Loan ID</th><th>Employee</th><th>Type</th><th>Loan Amount</th><th>Monthly Repayment</th><th>Balance</th><th>Start Date</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+          ${state.loans.map(l=>`<tr>
+            <td class="font-mono" style="font-size:11px">${l.id}</td>
+            <td><strong>${l.employeeName}</strong></td>
+            <td>${l.loanType}</td>
+            <td>${fmt(l.amount)}</td>
+            <td style="color:var(--amber)">${fmt(l.monthlyRepayment)}</td>
+            <td style="color:${l.balance===0?'var(--green)':'var(--red)'}"><strong>${fmt(l.balance)}</strong></td>
+            <td>${MONTHS[l.startMonth-1]} ${l.startYear}</td>
+            <td><span class="badge ${l.status==='active'?'amber':'green'}">${l.status}</span></td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-outline btn-xs" onclick="viewLoanSchedule('${l.id}')">📅 Schedule</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Company Settings ───────────────────────────────────────
+function renderCompanySettings() {
+  const c = state.company;
+  return `
+  <div class="page-title" style="margin-bottom:20px">Company Settings</div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Company Information</div></div>
+    <div class="card-body">
+      <div class="alert info">ℹ️ This information appears on all payslips, reports, and statutory documents.</div>
+      <div class="form-grid" style="gap:20px">
+        <div class="form-group"><label>Company / Business Name *</label>
+          <input class="form-control" id="co_name" value="${c.name}"></div>
+        <div class="form-group"><label>KRA PIN *</label>
+          <input class="form-control" id="co_kra" value="${c.kraPin}" placeholder="P051234567A"></div>
+        <div class="form-group"><label>NSSF Employer Number</label>
+          <input class="form-control" id="co_nssf" value="${c.nssfNo}"></div>
+        <div class="form-group"><label>SHA / SHIF Employer Number</label>
+          <input class="form-control" id="co_shif" value="${c.shifNo}"></div>
+        <div class="form-group"><label>Physical Address</label>
+          <input class="form-control" id="co_addr" value="${c.address}"></div>
+        <div class="form-group"><label>Email Address</label>
+          <input class="form-control" id="co_email" value="${c.email}"></div>
+        <div class="form-group"><label>Phone Number</label>
+          <input class="form-control" id="co_phone" value="${c.phone}"></div>
+        <div class="form-group"><label>Company Logo URL (optional)</label>
+          <input class="form-control" id="co_logo" value="${c.logo||''}" placeholder="https://..."></div>
+      </div>
+      <div class="mt-16">
+        <button class="btn btn-primary" onclick="saveCompany()">💾 Save Company Settings</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Modals ─────────────────────────────────────────────────
+function renderModal() {
+  if (!state.modal) return '';
+
+  if (state.modal === 'addEmployee' || state.modal === 'editEmployee') {
+    const emp = state.editEmployee || {};
+    const isEdit = state.modal === 'editEmployee';
+    return `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">${isEdit?'Edit':'Add New'} Employee</div>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="tabs">
+            <div class="tab active" onclick="switchTab(0,this,'empTabs')">Personal</div>
+            <div class="tab" onclick="switchTab(1,this,'empTabs')">Job & Salary</div>
+            <div class="tab" onclick="switchTab(2,this,'empTabs')">Allowances & Deductions</div>
+          </div>
+          <div id="empTabs">
+            <div id="empTab0">
+              <div class="form-grid">
+                <div class="form-group"><label>First Name *</label><input class="form-control" id="emp_fname" value="${emp.firstName||''}"></div>
+                <div class="form-group"><label>Last Name *</label><input class="form-control" id="emp_lname" value="${emp.lastName||''}"></div>
+                <div class="form-group"><label>ID Number</label><input class="form-control" id="emp_id_num" value="${emp.idNumber||''}"></div>
+                <div class="form-group"><label>KRA PIN</label><input class="form-control" id="emp_kra" value="${emp.kraPin||''}" placeholder="A001234567W"></div>
+                <div class="form-group"><label>NSSF Number</label><input class="form-control" id="emp_nssf_no" value="${emp.nssfNo||''}"></div>
+                <div class="form-group"><label>Email</label><input class="form-control" id="emp_email" value="${emp.email||''}"></div>
+                <div class="form-group"><label>Phone</label><input class="form-control" id="emp_phone" value="${emp.phone||''}"></div>
+                <div class="form-group"><label>Date Hired</label><input class="form-control" type="date" id="emp_hired" value="${emp.dateHired||''}"></div>
+              </div>
+            </div>
+            <div id="empTab1" class="hidden">
+              <div class="form-grid">
+                <div class="form-group"><label>Department *</label>
+                  <select class="form-control" id="emp_dept">
+                    ${DEPARTMENTS.map(d=>`<option value="${d}" ${emp.department===d?'selected':''}>${d}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="form-group"><label>Designation *</label><input class="form-control" id="emp_desig" value="${emp.designation||''}"></div>
+                <div class="form-group"><label>Basic Salary (Kshs) *</label><input class="form-control" type="number" id="emp_basic" value="${emp.basicSalary||''}"></div>
+                <div class="form-group"><label>Employment Type</label>
+                  <select class="form-control" id="emp_type">
+                    <option value="primary" ${(emp.empType||'primary')==='primary'?'selected':''}>Primary Employment</option>
+                    <option value="secondary" ${emp.empType==='secondary'?'selected':''}>Secondary Employment</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Status</label>
+                  <select class="form-control" id="emp_status">
+                    <option value="active" ${(emp.status||'active')==='active'?'selected':''}>Active</option>
+                    <option value="inactive" ${emp.status==='inactive'?'selected':''}>Inactive</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div id="empTab2" class="hidden">
+              <div style="margin-bottom:16px">
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Allowances</div>
+                <div id="allowancesList">
+                  ${(emp.allowances||[]).map((a,i)=>`
+                  <div style="display:flex;gap:8px;margin-bottom:8px" id="allow_${i}">
+                    <input class="form-control" placeholder="Allowance name" value="${a.name}" style="flex:2" id="allow_name_${i}">
+                    <input class="form-control" type="number" placeholder="Amount" value="${a.amount}" style="flex:1" id="allow_amt_${i}">
+                    <button class="btn btn-danger btn-xs" onclick="document.getElementById('allow_${i}').remove()">✕</button>
+                  </div>`).join('')}
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="addAllowanceRow()">+ Add Allowance</button>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Other Deductions</div>
+                <div id="deductionsList">
+                  ${(emp.deductions||[]).map((d,i)=>`
+                  <div style="display:flex;gap:8px;margin-bottom:8px" id="ded_${i}">
+                    <input class="form-control" placeholder="Deduction name" value="${d.name}" style="flex:2" id="ded_name_${i}">
+                    <input class="form-control" type="number" placeholder="Amount" value="${d.amount}" style="flex:1" id="ded_amt_${i}">
+                    <button class="btn btn-danger btn-xs" onclick="document.getElementById('ded_${i}').remove()">✕</button>
+                  </div>`).join('')}
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="addDeductionRow()">+ Add Deduction</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveEmployee(${isEdit?`'${emp.id}'`:'null'})">${isEdit?'Update':'Add'} Employee</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (state.modal === 'addLoan') {
+    return `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-header"><div class="modal-title">Add New Loan</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Employee *</label>
+              <select class="form-control" id="loan_emp">
+                ${state.employees.filter(e=>e.status==='active').map(e=>`<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label>Loan Type *</label>
+              <select class="form-control" id="loan_type">
+                <option>Salary Advance</option>
+                <option>Emergency Loan</option>
+                <option>Mortgage Loan</option>
+                <option>Asset Finance</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Loan Amount (Kshs) *</label><input class="form-control" type="number" id="loan_amount" placeholder="e.g. 50000"></div>
+            <div class="form-group"><label>Repayment Period (Months) *</label><input class="form-control" type="number" id="loan_months" placeholder="e.g. 12"></div>
+            <div class="form-group"><label>Start Month</label>
+              <select class="form-control" id="loan_month">
+                ${MONTHS.map((m,i)=>`<option value="${i+1}" ${i+1===state.currentPeriod.month?'selected':''}>${m}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label>Year</label><input class="form-control" type="number" id="loan_year" value="${state.currentPeriod.year}"></div>
+          </div>
+          <div class="alert info" id="loanCalc">ℹ️ Monthly repayment will be calculated automatically.</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveLoan()">Add Loan</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (state.modal === 'import') {
+    return `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-header"><div class="modal-title">Import Employees from Excel</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+        <div class="modal-body">
+          <div class="alert info">ℹ️ Upload a standard Excel file (.xlsx) with employee data. The first row should be column headers.</div>
+          <div style="border:2px dashed var(--gray-300);border-radius:8px;padding:40px;text-align:center;cursor:pointer;margin-bottom:16px">
+            <div style="font-size:36px">📥</div>
+            <div style="font-weight:700;margin:8px 0">Drop Excel file here or click to browse</div>
+            <div style="font-size:12px;color:var(--gray-400)">.xlsx files only. Max 5MB.</div>
+          </div>
+          <div class="card-title" style="margin-bottom:8px">Required Excel Columns:</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Column</th><th>Field</th><th>Example</th></tr></thead>
+            <tbody>
+              ${[['A','First Name','James'],['B','Last Name','Kamau'],['C','ID Number','12345678'],['D','KRA PIN','A001234567W'],['E','NSSF Number','2000001'],['F','Department','Finance'],['G','Designation','Accountant'],['H','Basic Salary','85000'],['I','Employment Type','primary / secondary'],['J','Email','james@co.ke'],['K','Phone','0722000001']].map(([col,field,ex])=>`
+              <tr><td><strong>${col}</strong></td><td>${field}</td><td class="font-mono" style="font-size:11px;color:var(--gray-400)">${ex}</td></tr>`).join('')}
+            </tbody></table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="showToast('Feature: Upload .xlsx file to import employees');closeModal()">📥 Import</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return '';
+}
+
+// ══════════════════════════════════════════════════════════
+// MAIN RENDER
+// ══════════════════════════════════════════════════════════
+function renderPage() {
+  switch (state.page) {
+    case 'dashboard':   return renderDashboard();
+    case 'employees':   return renderEmployees();
+    case 'payroll-run': return renderPayrollRun();
+    case 'payslips':    return renderPayslips();
+    case 'masterroll':  return renderMasterRoll();
+    case 'paye':        return renderPAYE();
+    case 'nssf':        return renderNSSF();
+    case 'shif':        return renderSHIF();
+    case 'ahl':         return renderAHL();
+    case 'p10':         return renderP10();
+    case 'p9':          return renderP9();
+    case 'filing':      return renderFiling();
+    case 'loans':       return renderLoans();
+    case 'company':     return renderCompanySettings();
+    default: return '<div class="empty-state"><div class="icon">🚧</div><p>Page coming soon</p></div>';
+  }
+}
+
+function render() {
+  document.getElementById('app').innerHTML = `
+    ${renderSidebar()}
+    <div class="main">
+      ${renderTopbar()}
+      <div class="content">${renderPage()}</div>
+    </div>
+    ${renderModal()}
+    ${state.toast ? `<div class="toast">${state.toast}</div>` : ''}
+  `;
+}
+
+// ══════════════════════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════════════════════
+function navigate(page) {
+  state.page = page;
+  state.viewPayslip = null;
+  render();
+}
+
+function changePeriod(val) {
+  const [m,y] = val.split('-').map(Number);
+  state.currentPeriod = { month:m, year:y };
+  render();
+}
+
+function closeModal() { state.modal=null; state.editEmployee=null; render(); }
+
+function openAddEmployee() { state.modal='addEmployee'; state.editEmployee=null; render(); }
+
+function openEditEmployee(id) {
+  state.editEmployee = state.employees.find(e=>e.id===id);
+  state.modal = 'editEmployee';
+  render();
+}
+
+function openAddLoan() { state.modal='addLoan'; render(); }
+
+function openImportModal() { state.modal='import'; render(); }
+
+function switchTab(idx, el, containerId) {
+  const tabs = document.querySelectorAll('.tabs .tab');
+  tabs.forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const container = document.getElementById(containerId);
+  container.querySelectorAll('[id^="empTab"]').forEach((t,i)=>t.classList.toggle('hidden', i!==idx));
+}
+
+let _allowCount = 10, _dedCount = 10;
+
+function addAllowanceRow() {
+  const list = document.getElementById('allowancesList');
+  const i = _allowCount++;
+  const div = document.createElement('div');
+  div.id = `allow_${i}`;
+  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
+  div.innerHTML = `<input class="form-control" placeholder="Allowance name" style="flex:2" id="allow_name_${i}">
+    <input class="form-control" type="number" placeholder="Amount" style="flex:1" id="allow_amt_${i}">
+    <button class="btn btn-danger btn-xs" onclick="document.getElementById('allow_${i}').remove()">✕</button>`;
+  list.appendChild(div);
+}
+
+function addDeductionRow() {
+  const list = document.getElementById('deductionsList');
+  const i = _dedCount++;
+  const div = document.createElement('div');
+  div.id = `ded_${i}`;
+  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
+  div.innerHTML = `<input class="form-control" placeholder="Deduction name" style="flex:2" id="ded_name_${i}">
+    <input class="form-control" type="number" placeholder="Amount" style="flex:1" id="ded_amt_${i}">
+    <button class="btn btn-danger btn-xs" onclick="document.getElementById('ded_${i}').remove()">✕</button>`;
+  list.appendChild(div);
+}
+
+function saveEmployee(id) {
+  const fn = document.getElementById('emp_fname')?.value?.trim();
+  const ln = document.getElementById('emp_lname')?.value?.trim();
+  const basic = parseFloat(document.getElementById('emp_basic')?.value || 0);
+  if (!fn || !ln || !basic) { showToast('❌ Please fill in required fields'); return; }
+
+  // Collect allowances
+  const allowances = [];
+  document.querySelectorAll('[id^="allow_name_"]').forEach(el=>{
+    const i = el.id.replace('allow_name_','');
+    const name = el.value.trim();
+    const amt = parseFloat(document.getElementById(`allow_amt_${i}`)?.value||0);
+    if (name && amt) allowances.push({name,amount:amt});
+  });
+
+  // Collect deductions
+  const deductions = [];
+  document.querySelectorAll('[id^="ded_name_"]').forEach(el=>{
+    const i = el.id.replace('ded_name_','');
+    const name = el.value.trim();
+    const amt = parseFloat(document.getElementById(`ded_amt_${i}`)?.value||0);
+    if (name && amt) deductions.push({name,amount:amt});
+  });
+
+  const emp = {
+    id: id || uid(),
+    firstName: fn,
+    lastName: ln,
+    idNumber: document.getElementById('emp_id_num')?.value||'',
+    kraPin: document.getElementById('emp_kra')?.value||'',
+    nssfNo: document.getElementById('emp_nssf_no')?.value||'',
+    email: document.getElementById('emp_email')?.value||'',
+    phone: document.getElementById('emp_phone')?.value||'',
+    dateHired: document.getElementById('emp_hired')?.value||'',
+    department: document.getElementById('emp_dept')?.value||'General',
+    designation: document.getElementById('emp_desig')?.value||'',
+    basicSalary: basic,
+    empType: document.getElementById('emp_type')?.value||'primary',
+    status: document.getElementById('emp_status')?.value||'active',
+    allowances,
+    deductions,
+  };
+
+  if (id) {
+    const idx = state.employees.findIndex(e=>e.id===id);
+    if (idx>=0) state.employees[idx] = emp;
+  } else {
+    state.employees.push(emp);
+  }
+  closeModal();
+  showToast(`✅ Employee ${fn} ${ln} ${id?'updated':'added'} successfully`);
+}
+
+function saveLoan() {
+  const empId = document.getElementById('loan_emp')?.value;
+  const loanType = document.getElementById('loan_type')?.value;
+  const amount = parseFloat(document.getElementById('loan_amount')?.value||0);
+  const months = parseInt(document.getElementById('loan_months')?.value||1);
+  const startMonth = parseInt(document.getElementById('loan_month')?.value);
+  const startYear = parseInt(document.getElementById('loan_year')?.value);
+  if (!empId || !amount || !months) { showToast('❌ Fill all required fields'); return; }
+  const emp = state.employees.find(e=>e.id===empId);
+  const monthly = Math.ceil(amount/months);
+  state.loans.push({
+    id:'L'+uid(),
+    employeeId:empId,
+    employeeName:`${emp.firstName} ${emp.lastName}`,
+    loanType,amount,balance:amount,
+    monthlyRepayment:monthly,
+    startMonth,startYear,
+    status:'active'
+  });
+  // Add deduction to employee
+  const empIdx = state.employees.findIndex(e=>e.id===empId);
+  if (empIdx>=0) {
+    state.employees[empIdx].deductions = state.employees[empIdx].deductions || [];
+    state.employees[empIdx].deductions.push({name:loanType+' Repayment',amount:monthly});
+  }
+  closeModal();
+  showToast('✅ Loan added and auto-deduction scheduled');
+}
+
+function saveCompany() {
+  state.company = {
+    name: document.getElementById('co_name')?.value||state.company.name,
+    kraPin: document.getElementById('co_kra')?.value||state.company.kraPin,
+    nssfNo: document.getElementById('co_nssf')?.value||state.company.nssfNo,
+    shifNo: document.getElementById('co_shif')?.value||state.company.shifNo,
+    address: document.getElementById('co_addr')?.value||state.company.address,
+    email: document.getElementById('co_email')?.value||state.company.email,
+    phone: document.getElementById('co_phone')?.value||state.company.phone,
+    logo: document.getElementById('co_logo')?.value||state.company.logo,
+  };
+  showToast('✅ Company settings saved');
+  render();
+}
+
+function processPayroll() {
+  const period = monthYear(state.currentPeriod.month, state.currentPeriod.year);
+  showToast(`✅ Payroll for ${period} processed successfully! Payslips ready.`);
+}
+
+function viewPayslipPage(empId) { state.viewPayslip=empId; state.page='payslips'; render(); }
+function viewEmployeePayslip(empId) { viewPayslipPage(empId); }
+
+function downloadPayslipPDF(empId) {
+  showToast('📄 Generating payslip PDF... (Download will start)');
+  // In production: call backend PDF endpoint
+}
+
+function emailPayslip(empId) {
+  const emp = state.employees.find(e=>e.id===empId);
+  showToast(`📧 Payslip emailed to ${emp?.email||'employee'}`);
+}
+
+function sendAllPayslips() { showToast('📧 Sending payslips to all employees...'); }
+
+function exportMasterRoll() { showToast('📊 Exporting Master Roll to Excel...'); }
+function exportMasterRollPDF() { showToast('📄 Exporting Master Roll to PDF...'); }
+function exportPAYEExcel() { showToast('📊 Exporting PAYE Report to Excel...'); }
+function exportPAYEPDF() { showToast('📄 Exporting PAYE Report to PDF...'); }
+function exportNSSFExcel() { showToast('📊 Exporting NSSF Report to Excel...'); }
+function exportNSSFPDF() { showToast('📄 Exporting NSSF Report to PDF...'); }
+function exportSHIFExcel() { showToast('📊 Exporting SHIF Report to Excel...'); }
+function exportSHIFPDF() { showToast('📄 Exporting SHIF Report to PDF...'); }
+function exportAHLExcel() { showToast('📊 Exporting AHL Report to Excel...'); }
+function exportAHLPDF() { showToast('📄 Exporting AHL Report to PDF...'); }
+function exportP10Excel() { showToast('📊 Exporting P10 to Excel...'); }
+function exportP10PDF() { showToast('📄 Exporting P10 to PDF...'); }
+function exportP9Excel() { showToast('📊 Exporting P9 Forms to Excel...'); }
+function exportP9PDF() { showToast('📄 Exporting P9 Forms to PDF...'); }
+
+function downloadP10CSV() {
+  const pr = currentPayroll();
+  const headers = ['PIN','Employee Name','Gross Pay','Type','Housing Benefit','Benefits in Kind','Total Cash Pay','Owner Occ Interest','Personal Relief','Insurance Relief','Disability Exempt','Investment Deduct','Mortgage Relief','PAYE Calc','SHIF','AHL','NSSF Employee','Pension Contrib','Taxable Pay','PAYE Deducted','Monthly Reliefs','Personal Relief Applied','Insurance Relief Applied','Disability Applied','PAYE Payable','Net Pay'];
+  const rows = pr.map(r=>{
+    const isPrimary = r.empType==='primary';
+    const colO = isPrimary?r.shif:0;
+    const colP = isPrimary?r.ahl:0;
+    const colT = isPrimary?0:r.grossSalary*0.30;
+    const colV = isPrimary?PERSONAL_RELIEF:2400;
+    const colY = isPrimary?r.paye:r.grossSalary*0.30;
+    return [r.kraPin,r.employeeName,r.grossSalary,r.empType,0,0,r.grossSalary,0,isPrimary?PERSONAL_RELIEF:0,0,0,0,0,(r.paye+(isPrimary?PERSONAL_RELIEF:0)).toFixed(2),colO,colP,r.nssf,0,r.taxableIncome,colT,0,colV,0,0,colY,r.netPay].join(',');
+  });
+  const csv = [headers.join(','),...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url;
+  a.download=`P10_Simplified_${MONTHS[state.currentPeriod.month-1]}_${state.currentPeriod.year}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ P10 CSV downloaded — ready for KRA iTax upload');
+}
+
+function downloadNSSFReturn() {
+  const pr = currentPayroll();
+  const rows = pr.map(r=>{
+    const emp=state.employees.find(e=>e.id===r.employeeId);
+    return [emp?.nssfNo||'',r.employeeName,r.idNumber||'',r.basicSalary,r.nssfTier1,r.nssfTier2,r.nssf,r.nssfTier1*3].join(',');
+  });
+  const csv = ['NSSF No,Employee Name,ID Number,Basic Salary,Tier I Employee,Tier II Employee,Total Employee,Employer Contribution',...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`NSSF_Return_${MONTHS[state.currentPeriod.month-1]}_${state.currentPeriod.year}.csv`;
+  a.click();URL.revokeObjectURL(url);
+  showToast('✅ NSSF Return CSV downloaded');
+}
+
+function downloadSHIFReturn() {
+  const pr=currentPayroll();
+  const rows=pr.map(r=>[r.kraPin,r.employeeName,r.grossSalary,r.shif].join(','));
+  const csv=['KRA PIN,Employee Name,Gross Salary,SHIF Contribution',...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`SHA_Return_${MONTHS[state.currentPeriod.month-1]}_${state.currentPeriod.year}.csv`;
+  a.click();URL.revokeObjectURL(url);
+  showToast('✅ SHA/SHIF Return downloaded');
+}
+
+function downloadP9PDF(empId) { showToast('📄 Generating P9 Form PDF...'); }
+function emailP9(empId) {
+  const emp=state.employees.find(e=>e.id===empId);
+  showToast(`📧 P9 Form emailed to ${emp?.email||'employee'}`);
+}
+
+function viewLoanSchedule(loanId) {
+  const loan=state.loans.find(l=>l.id===loanId);
+  if(!loan) return;
+  let html=`<div class="modal-overlay" onclick="if(event.target===this)this.remove()"><div class="modal">
+    <div class="modal-header"><div class="modal-title">Loan Schedule — ${loan.employeeName}</div><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+    <div class="modal-body">
+    <div class="info-grid" style="margin-bottom:16px">
+      <div class="info-item"><label>Loan Type</label><span>${loan.loanType}</span></div>
+      <div class="info-item"><label>Total Amount</label><span>${fmt(loan.amount)}</span></div>
+      <div class="info-item"><label>Monthly Repayment</label><span>${fmt(loan.monthlyRepayment)}</span></div>
+      <div class="info-item"><label>Outstanding Balance</label><span style="color:var(--red)">${fmt(loan.balance)}</span></div>
+    </div>
+    <table><thead><tr><th>#</th><th>Month</th><th>Repayment</th><th>Balance</th><th>Status</th></tr></thead><tbody>`;
+  let balance=loan.amount;
+  const periods=Math.ceil(loan.amount/loan.monthlyRepayment);
+  for(let i=0;i<periods;i++){
+    let m=loan.startMonth+i;
+    let y=loan.startYear;
+    while(m>12){m-=12;y++;}
+    const rep=Math.min(loan.monthlyRepayment,balance);
+    balance=Math.max(0,balance-rep);
+    const past=y<state.currentPeriod.year||(y===state.currentPeriod.year&&m<=state.currentPeriod.month);
+    html+=`<tr><td>${i+1}</td><td>${MONTHS[m-1]} ${y}</td><td>${fmt(rep)}</td><td>${fmt(balance)}</td>
+      <td><span class="badge ${past?'green':'gray'}">${past?'Paid':'Pending'}</span></td></tr>`;
+  }
+  html+=`</tbody></table></div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function renderP9Preview() {
+  // called from select onchange
+  setTimeout(()=>{
+    const fn = window.renderP9Preview;
+    if(fn) fn();
+  },0);
+}
+
+// ── Bootstrap ──────────────────────────────────────────────
+render();
+// Re-expose renderP9Preview for inline call
+window.renderP9Preview = function() {
+  const empId = document.getElementById('p9EmpSelect')?.value;
+  const preview = document.getElementById('p9Preview');
+  if (!preview) return;
+  if (!empId) { preview.innerHTML=''; return; }
+  const emp = state.employees.find(e=>e.id===empId);
+  if (!emp) return;
+  const rows = Array.from({length:12},(_,i)=>computePayroll(emp,i+1,state.currentPeriod.year));
+  const totGross=rows.reduce((s,r)=>s+r.grossSalary,0);
+  const totBasic=rows.reduce((s,r)=>s+r.basicSalary,0);
+  const totPAYE=rows.reduce((s,r)=>s+r.paye,0);
+  const totNSSF=rows.reduce((s,r)=>s+r.nssf,0);
+  preview.innerHTML=`<div class="card mt-16">
+    <div class="card-header">
+      <div><div class="card-title">P9 Form — ${emp.firstName} ${emp.lastName}</div><div style="font-size:12px;color:var(--gray-500)">Year: ${state.currentPeriod.year}</div></div>
+      <div class="btn-group">
+        <button class="btn btn-outline btn-sm" onclick="exportP9Excel()">📊 Excel</button>
+        <button class="btn btn-primary btn-sm" onclick="downloadP9PDF('${empId}')">📄 PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="emailP9('${empId}')">📧 Email</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid-3">
+        ${[['Name',`${emp.firstName} ${emp.lastName}`],['ID',emp.id],['KRA PIN',emp.kraPin],['ID Number',emp.idNumber],['Designation',emp.designation],['Tax Year',state.currentPeriod.year]].map(([l,v])=>`<div class="info-item"><label>${l}</label><span>${v||'—'}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>Basic</th><th>Allowances</th><th>Gross</th><th>NSSF</th><th>Taxable</th><th>Tax</th><th>Relief</th><th>PAYE</th></tr></thead>
+        <tbody>${rows.map((r,i)=>`<tr>
+          <td>${MONTHS[i]}</td><td>${fmtN(r.basicSalary)}</td><td>${fmtN(r.allowances)}</td>
+          <td>${fmtN(r.grossSalary)}</td><td>${fmtN(r.nssf)}</td><td>${fmtN(r.taxableIncome)}</td>
+          <td>${fmtN(r.paye+PERSONAL_RELIEF)}</td><td>${fmtN(PERSONAL_RELIEF)}</td><td><strong>${fmtN(r.paye)}</strong></td>
+        </tr>`).join('')}</tbody>
+        <tfoot><tr class="tfoot-row">
+          <td><strong>TOTALS</strong></td><td>${fmtN(totBasic)}</td><td>${fmtN(totGross-totBasic)}</td>
+          <td><strong>${fmtN(totGross)}</strong></td><td>${fmtN(totNSSF)}</td><td>${fmtN(totGross-totNSSF)}</td>
+          <td>${fmtN(totPAYE+PERSONAL_RELIEF*12)}</td><td>${fmtN(PERSONAL_RELIEF*12)}</td><td><strong>${fmtN(totPAYE)}</strong></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+};
+</script>
+</body>
+</html>
